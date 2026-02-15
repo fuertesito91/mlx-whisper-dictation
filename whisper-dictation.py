@@ -14,6 +14,18 @@ from mlx_whisper.load_models import load_model
 
 import platform
 
+# Native macOS key monitoring (works inside rumps/NSApplication run loop)
+from AppKit import NSEvent, NSKeyDownMask, NSFlagsChangedMask, NSWorkspace, NSRunningApplication
+import Quartz
+import subprocess
+import os
+
+def play_sound(name):
+    """Play a macOS system sound asynchronously."""
+    path = f"/System/Library/Sounds/{name}.aiff"
+    if os.path.exists(path):
+        subprocess.Popen(["afplay", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 
 class SpeechTranscriber:
 
@@ -113,7 +125,7 @@ class GlobalKeyListener:
 class DoubleCommandKeyListener:
     def __init__(self, app):
         self.app = app
-        self.key = keyboard.Key.cmd_r
+        self.key = keyboard.Key.cmd
         self.pressed = 0
         self.last_press_time = 0
 
@@ -121,8 +133,9 @@ class DoubleCommandKeyListener:
         is_listening = self.app.started
         if key == self.key:
             current_time = time.time()
+            delta = current_time - self.last_press_time
             if (
-                not is_listening and current_time - self.last_press_time < 0.5
+                not is_listening and delta < 0.5
             ):  # Double click to start listening
                 self.app.toggle()
             elif is_listening:  # Single click to stop listening
@@ -169,8 +182,22 @@ class StatusBarApp(rumps.App):
                 self.change_language if lang != self.current_language else None
             )
 
+    def save_frontmost_app(self):
+        """Remember which app was focused before we started recording."""
+        app = NSWorkspace.sharedWorkspace().frontmostApplication()
+        if app and app.bundleIdentifier() != "org.python.python":
+            self.previous_app = app
+
+    def restore_frontmost_app(self):
+        """Switch back to the app the user was in before recording."""
+        if hasattr(self, 'previous_app') and self.previous_app:
+            self.previous_app.activateWithOptions_(0)
+            time.sleep(0.3)  # give macOS time to switch
+
     @rumps.clicked("Start Recording")
     def start_app(self, _):
+        self.save_frontmost_app()
+        play_sound("Pop")  # Recording started
         print("Listening...")
         self.started = True
         self.menu["Start Recording"].set_callback(None)
@@ -192,11 +219,13 @@ class StatusBarApp(rumps.App):
         if self.timer is not None:
             self.timer.cancel()
 
+        play_sound("Blow")  # Recording stopped, transcribing
         print("Transcribing...")
         self.title = "⏯"
         self.started = False
         self.menu["Stop Recording"].set_callback(None)
         self.menu["Start Recording"].set_callback(self.start_app)
+        self.restore_frontmost_app()
         self.recorder.stop()
         print("Done.\n")
 
@@ -353,13 +382,35 @@ if __name__ == "__main__":
 
     app = StatusBarApp(recorder, args.language, args.max_time)
     if args.k_double_cmd:
-        key_listener = DoubleCommandKeyListener(app)
+        # Use native macOS NSEvent monitor — works inside rumps/Cocoa run loop
+        last_cmd_time = [0.0]
+        CMD_FLAG = 1 << 20  # NSEventModifierFlagCommand
+
+        def handle_flags_changed(event):
+            flags = event.modifierFlags()
+            # Fires when Command is pressed (flag appears)
+            if flags & CMD_FLAG:
+                now = time.time()
+                delta = now - last_cmd_time[0]
+                last_cmd_time[0] = now
+                if not app.started and delta < 0.4:
+                    print("[NSEvent] Double-cmd detected — TOGGLE ON")
+                    app.save_frontmost_app()
+                    app.toggle()
+                elif app.started:
+                    print("[NSEvent] Cmd pressed while recording — TOGGLE OFF")
+                    app.toggle()
+
+        NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(
+            NSFlagsChangedMask, handle_flags_changed
+        )
+        print("Running... (double-tap ⌘ Command to start, single tap to stop)")
     else:
         key_listener = GlobalKeyListener(app, args.key_combination)
-    listener = keyboard.Listener(
-        on_press=key_listener.on_key_press, on_release=key_listener.on_key_release
-    )
-    listener.start()
+        listener = keyboard.Listener(
+            on_press=key_listener.on_key_press, on_release=key_listener.on_key_release
+        )
+        listener.start()
+        print("Running...")
 
-    print("Running...")
     app.run()

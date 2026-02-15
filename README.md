@@ -1,260 +1,193 @@
-# MLX Whisper Dictation - Installation and Usage Guide
+# MLX Whisper Dictation for macOS
 
-[Watch the video on YouTube](https://youtu.be/O1NsoeECVAs?si=JMD7JCvD6LbahQU9)
+**Replace Apple's built-in dictation with OpenAI's Whisper — running locally on Apple Silicon.**
 
-[Watch the video on Odysee](https://odysee.com/mlx-whisper-dictation:f)
+Apple's native dictation is... fine. But if you've ever watched it butcher a technical term, mangle a name, or struggle with accented speech, you know it could be better. This app replaces it with [OpenAI Whisper](https://github.com/openai/whisper) running locally via [MLX](https://github.com/ml-explore/mlx) — Apple's own machine learning framework optimized for M-series chips.
 
-## Step 1: Install Homebrew
-1. Open your terminal and run:
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-2. Add Homebrew to your `PATH`:
-   ```bash
-   export PATH="/opt/homebrew/bin:$PATH"
-   ```
+**No cloud. No API keys. No subscription. Just better dictation.**
 
----
+## How It Works
 
-## Step 2: Configure Zsh
-1. Open the Zsh configuration file:
-   ```bash
-   nano ~/.zshrc
-   ```
-2. Add the following line:
-   ```bash
-   source ~/.zshrc
-   ```
-3. Save and exit:
-   - Press `Ctrl + X`
-   - Press `Y`
-   - Press `Enter`
-4. Reload the configuration:
-   ```bash
-   source ~/.zshrc
-   ```
+1. **Double-tap ⌘ (Command)** → starts recording (you'll hear a pop sound)
+2. **Speak** into your mic
+3. **Tap ⌘** → stops recording, transcribes your speech, and types the text into whatever app you're using
 
----
+It runs as a lightweight menu bar app (⏯ icon) and works in **any text field** — browsers, editors, chat apps, Notes, Terminal, everything.
 
-## Step 3: Install Required Packages
-Run this command to install the necessary packages:
-```bash
-brew install portaudio llvm
-```
+https://github.com/user-attachments/assets/placeholder-demo.gif
 
----
+## Why?
 
-## Step 4: Clone the Repository
-1. Navigate to your `Documents` folder:
-   ```bash
-   cd ~/Documents
-   ```
-2. Clone the repository:
-   ```bash
-   git clone https://github.com/computerstimulation/mlx-whisper-dictation
-   ```
-3. Navigate into the project folder:
-   ```bash
-   cd mlx-whisper-dictation
-   ```
+| | Apple Dictation | MLX Whisper Dictation |
+|---|---|---|
+| **Accuracy** | Good for simple English | Excellent across languages, accents, technical terms |
+| **Languages** | Limited per-language models | 99 languages, auto-detection, multilingual in one session |
+| **Privacy** | Sends audio to Apple servers | 100% local — never leaves your Mac |
+| **Model** | Proprietary, no choice | Choose from 40+ Whisper model variants |
+| **Speed** | Fast (cloud) | Fast (MLX on Apple Silicon GPU) |
+| **Custom vocabulary** | No | Whisper handles jargon, names, and code terms better |
 
----
+## Requirements
 
-## Step 5: Set Up a Virtual Environment
-1. Create a virtual environment:
-   ```bash
-   python3.12 -m venv venv
-   ```
-2. Activate the virtual environment:
-   ```bash
-   source venv/bin/activate
-   ```
-
----
-
-## Step 6: Install Dependencies
-Install the app's required dependencies:
-```bash
-pip install -r requirements.txt
-```
-Wait for the dependencies to finish downloading.
-
----
-
-## Step 7: Run the App
-Run the application:
-```bash
-python whisper-dictation.py
-```
-
----
-
-## Step 8: Use the App
-1. Open a text field and place your cursor in it.
-2. Press `Command + Option` to start dictation.
-3. If prompted with “Terminal would like to access the microphone,” press **Allow**.
-4. Speak into your microphone.
-5. Press `Command + Option` again to stop dictation.
-
----
-
-### Notes:
-- The first time you use the app, the model may take some time to download.
-- The default model is **MLX Whisper Large** (highest quality but slower processing time).
-- You can change the model in the app configuration.
-
-If your cursor is on a text field, transcribed text will be automatically pasted.
-
-To stop the app, press `Ctrl + C` in the terminal.
-
-
-# Multilingual Dictation App based on OpenAI Whisper
-Multilingual dictation app based on the powerful OpenAI Whisper ASR model(s) to provide accurate and efficient speech-to-text conversion in any application. The app runs in the background and is triggered through a keyboard shortcut. It is also entirely offline, so no data will be shared. It allows users to set up their own keyboard combinations and choose from different Whisper models, and languages.
-
-## Prerequisites
-The PortAudio and llvm library is required for this app to work. You can install it on macOS using the following command:
-
-```bash
-brew install portaudio llvm
-```
-
-## Permissions
-The app requires accessibility permissions to register global hotkeys and permission to access your microphone for speech recognition.
+- **macOS** (Ventura 13.0+ recommended)
+- **Apple Silicon** (M1/M2/M3/M4) — required for MLX
+- **Python 3.10+**
+- **Homebrew** (for installing dependencies)
 
 ## Installation
-Clone the repository:
+
+### 1. Install system dependencies
 
 ```bash
-git clone https://github.com/foges/whisper-dictation.git
-cd whisper-dictation
+brew install portaudio
 ```
 
-If you use poetry:
-
-```shell
-poetry install
-poetry shell
-```
-
-Or, if you don't use poetry, first create a virtual environment:
+### 2. Clone and set up
 
 ```bash
+git clone https://github.com/YOUR_USERNAME/mlx-whisper-dictation.git
+cd mlx-whisper-dictation
 python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Install the required packages:
+### 3. Grant macOS permissions
+
+The app needs **Accessibility** and **Input Monitoring** permissions to detect key presses and type text into other apps.
+
+1. Open **System Settings → Privacy & Security → Accessibility**
+2. Click **+** and add the Python binary from the venv:
+   ```
+   /path/to/mlx-whisper-dictation/venv/bin/python
+   ```
+   (Tip: press ⌘+Shift+G in the file picker to type the path)
+3. Do the same under **Input Monitoring**
+
+> If you run from Terminal, also add **Terminal.app** (or your terminal of choice) to both lists.
+
+### 4. First run (downloads the model)
 
 ```bash
-pip install -r requirements.txt
+source venv/bin/activate
+python whisper-dictation.py -m mlx-community/whisper-large-v3-turbo --k_double_cmd -l en -t 60
+```
+
+The first run will download the Whisper model (~1.5 GB). After that, it's cached locally.
+
+### 5. (Optional) Install as auto-start service
+
+Create a LaunchAgent so it starts automatically on login:
+
+```bash
+cat > ~/Library/LaunchAgents/com.whisper-dictation.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.whisper-dictation</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/FULL/PATH/TO/mlx-whisper-dictation/venv/bin/python</string>
+        <string>/FULL/PATH/TO/mlx-whisper-dictation/whisper-dictation.py</string>
+        <string>-m</string>
+        <string>mlx-community/whisper-large-v3-turbo</string>
+        <string>--k_double_cmd</string>
+        <string>-l</string>
+        <string>en</string>
+        <string>-t</string>
+        <string>60</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/whisper-dictation.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/whisper-dictation.err</string>
+</dict>
+</plist>
+EOF
+```
+
+**Replace `/FULL/PATH/TO/` with the actual path** to your cloned repo, then load it:
+
+```bash
+launchctl load ~/Library/LaunchAgents/com.whisper-dictation.plist
+```
+
+To manage the service:
+```bash
+launchctl stop com.whisper-dictation    # Stop
+launchctl start com.whisper-dictation   # Start
+launchctl unload ~/Library/LaunchAgents/com.whisper-dictation.plist  # Disable
 ```
 
 ## Usage
-Run the application:
 
-```bash
-python whisper-dictation.py
+| Action | Trigger |
+|---|---|
+| Start recording | Double-tap ⌘ (Command) |
+| Stop recording & transcribe | Single tap ⌘ |
+| Start recording (alt) | Click "Start Recording" in menu bar |
+| Stop recording (alt) | Click "Stop Recording" in menu bar |
+
+### Audio feedback
+- **Pop** sound → recording started
+- **Blow** sound → recording stopped, transcribing
+
+### Command-line options
+
+```
+-m, --model_name      Whisper model to use (default: mlx-community/whisper-large-v3-mlx)
+-k, --key_combination Key combo for toggle (default: cmd_l+alt on macOS)
+--k_double_cmd        Use double-tap ⌘ instead of key combination
+-l, --language        Language code(s), comma-separated (e.g., "en" or "en,es,fr")
+-t, --max_time        Max recording duration in seconds (default: 30)
 ```
 
-By default, the app uses the "base" Whisper ASR model and the key combination to toggle dictation is cmd+option on macOS and ctrl+alt on other platforms. You can change the model and the key combination using command-line arguments.  Note that models other than `tiny` and `base` can be slow to transcribe and are not recommended unless you're using a powerful computer, ideally one with a CUDA-enabled GPU. For example:
+### Recommended models
 
+| Model | Size | Speed | Accuracy | Best for |
+|---|---|---|---|---|
+| `whisper-large-v3-turbo` | ~1.5 GB | ⚡ Fast | ★★★★★ | **Recommended** — best balance |
+| `whisper-large-v3-mlx` | ~3 GB | Medium | ★★★★★ | Maximum accuracy |
+| `whisper-small-mlx` | ~500 MB | ⚡⚡ Very fast | ★★★☆☆ | Older Macs, quick notes |
+| `whisper-tiny-mlx` | ~150 MB | ⚡⚡⚡ Instant | ★★☆☆☆ | Testing only |
+
+## Multilingual
+
+Specify multiple languages and switch between them from the menu bar:
 
 ```bash
-python whisper-dictation.py -m large -k cmd_r+shift -l en
+python whisper-dictation.py --k_double_cmd -l en,es,fr -m mlx-community/whisper-large-v3-turbo
 ```
 
-The models are multilingual, and you can specify a two-letter language code (e.g., "no" for Norwegian) with the `-l` or `--language` option. Specifying the language can improve recognition accuracy, especially for smaller model sizes.
+The active language appears in the menu bar dropdown. Click a language to switch.
 
-#### Replace macOS default dictation trigger key
-You can use this app to replace macOS built-in dictation. Trigger to begin recording with a double click of Right Command key and stop recording with a single click of Right Command key.
-```bash
-python whisper-dictation.py -m large --k_double_cmd -l en
-```
-To use this trigger, go to System Settings -> Keyboard, disable Dictation. If you double click Right Command key on any text field, macOS will ask whether you want to enable Dictation, so select Don't Ask Again.
+## Troubleshooting
 
-## Setting the App as a Startup Item
-To have the app run automatically when your computer starts, follow these steps:
+### "This process is not trusted! Input event monitoring will not be possible"
+→ Add the Python binary to **Accessibility** and **Input Monitoring** in System Settings (see installation step 3).
 
- 1. Open System Preferences.
- 2. Go to Users & Groups.
- 3. Click on your username, then select the Login Items tab.
- 4. Click the + button and add the `run.sh` script from the whisper-dictation folder.
+### Double-tap ⌘ doesn't trigger recording
+→ Make sure you're using `--k_double_cmd` flag. Tap quickly (within 0.4 seconds).
 
-# Installation and Usage Instructions for MLX Whisper Dictation
+### Text appears in the wrong app
+→ The app switches focus back to wherever you were before recording started. If you click elsewhere during recording, the text will go to the originally focused app.
 
-## Step 1: Install Homebrew
-Run the following command in your terminal to install Homebrew:
+### Model download is slow
+→ First run downloads from Hugging Face. Subsequent runs use the cached model in `~/.cache/huggingface/`.
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-Add Homebrew to your path:
+## Credits
 
-bash
-Copy code
-export PATH="/opt/homebrew/bin:$PATH"
-Step 2: Configure Zsh
-Open your Zsh configuration file:
+- Built on [OpenAI Whisper](https://github.com/openai/whisper)
+- Accelerated by [Apple MLX](https://github.com/ml-explore/mlx) and [mlx-whisper](https://github.com/ml-explore/mlx-examples)
+- Original concept by [Diwannist/mlx-whisper-dictation](https://github.com/Diwannist/mlx-whisper-dictation)
+- Native macOS integration (NSEvent, rumps) for seamless menu bar experience
 
-bash
-Copy code
-nano ~/.zshrc
-Add the following line to the file:
+## License
 
-bash
-Copy code
-source ~/.zshrc
-Save and exit the file:
-
-Press Ctrl + X
-Press Y
-Press Enter
-Then reload the Zsh configuration:
-
-bash
-Copy code
-source ~/.zshrc
-Step 3: Install Required Packages
-Run the following command to install required packages:
-
-bash
-Copy code
-brew install portaudio llvm
-Step 4: Clone the Repository
-Navigate to your Documents folder and clone the repository:
-
-bash
-Copy code
-cd ~/Documents
-git clone https://github.com/computerstimulation/mlx-whisper-dictation
-Navigate into the project directory:
-
-bash
-Copy code
-cd mlx-whisper-dictation
-Step 5: Set Up a Virtual Environment
-Create and activate a virtual environment:
-
-bash
-Copy code
-python3.11 -m venv venv
-source venv/bin/activate
-Step 6: Install Dependencies
-Install the required packages for the app:
-
-bash
-Copy code
-pip install -r requirements.txt
-Wait for the dependencies to download.
-
-Step 7: Run the App
-Run the application using:
-
-bash
-Copy code
-python whisper-dictation.py
-Step 8: Use the App
-Open a text field and place your cursor on it.
-Press Command + Option.
-If prompted with “Terminal would like to access the microphone,” press Allow.
-Start speaking into your microphone.
-Press Command + Option again to stop.
+MIT

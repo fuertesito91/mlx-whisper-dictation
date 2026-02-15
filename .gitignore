@@ -1,2 +1,9 @@
 venv/
-t1.py
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+dist/
+build/
+*.log
+*.err
