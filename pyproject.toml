@@ -6,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.14"
 pyaudio = "^0.2.13"
 openai = "^0.28.1"
 # without this, poetry will attempt to install `triton` which is not available for macos
